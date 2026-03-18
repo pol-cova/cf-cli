@@ -1,0 +1,8 @@
+# Default ownership for the entire repository
+* @pol-cova
+
+# GitHub governance and community docs
+/.github/ @pol-cova
+/CONTRIBUTING.md @pol-cova
+/CODE_OF_CONDUCT.md @pol-cova
+/SECURITY.md @pol-cova

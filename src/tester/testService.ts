@@ -61,9 +61,11 @@ function runOnce(argv: string[], input: string): RunOutcome {
     input, timeout: TIMEOUT_MS, encoding: "utf-8", maxBuffer: 10 * 1024 * 1024,
   });
   if (result.error) {
-    const code = (result.error as NodeJS.ErrnoException).code;
-    const msg = code === "ENOENT" ? `${argv[0]} not found` : result.error.message;
-    return { stdout: "", stderr: msg, timedOut: false, exitCode: 1 };
+    const err = result.error as NodeJS.ErrnoException;
+    const code = err.code;
+    const isTimeout = code === "ETIMEDOUT" || result.signal === "SIGTERM";
+    const msg = code === "ENOENT" ? `${argv[0]} not found` : err.message;
+    return { stdout: "", stderr: msg, timedOut: isTimeout, exitCode: 1 };
   }
   return {
     stdout: result.stdout ?? "",

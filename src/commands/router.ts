@@ -67,7 +67,8 @@ async function scaffoldSolution(problemId: string, language: SupportedLanguage):
   const fullPath = path.resolve(process.cwd(), filename);
   try {
     await access(fullPath);
-  } catch {
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     await writeFile(fullPath, createTemplate(problemId, language), "utf-8");
   }
   return filename;

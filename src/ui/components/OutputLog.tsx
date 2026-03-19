@@ -9,7 +9,7 @@ export interface LogEntry {
 }
 
 function EntryBlock({ entry }: { entry: LogEntry }) {
-  const outputLines = entry.output.split("\n").filter((l) => l !== "");
+  const outputLines = entry.output.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
 
   return (
     <Box flexDirection="column" marginBottom={1}>

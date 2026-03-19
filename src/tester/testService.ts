@@ -49,8 +49,16 @@ function compileCpp(problemId: string, filePath: string): { error: string } | nu
     timeout: TIMEOUT_MS, encoding: "utf-8",
   });
   if (result.error) {
-    const code = (result.error as NodeJS.ErrnoException).code;
-    return { error: code === "ENOENT" ? "g++ not found — install a C++ compiler" : `spawn error: ${result.error.message}` };
+    const err = result.error as NodeJS.ErrnoException;
+    const code = err.code;
+    if (code === "ETIMEDOUT" || result.signal === "SIGTERM") {
+      return { error: "compile timeout (5s)" };
+    }
+    return {
+      error: code === "ENOENT"
+        ? "g++ not found — install a C++ compiler"
+        : `spawn error: ${err.message}`,
+    };
   }
   if (result.signal === "SIGTERM") return { error: "compile timeout (5s)" };
   if (result.status !== 0) return { error: `compile error:\n${(result.stderr ?? "").trim()}` };

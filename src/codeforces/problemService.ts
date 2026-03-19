@@ -25,7 +25,7 @@ function parseTitle(html: string): string {
   return match[1].trim();
 }
 
-const HTML_ENTITY_MAP: { [entity: string]: string } = {
+const HTML_ENTITY_MAP: Record<string, string> = {
   "&lt;": "<",
   "&gt;": ">",
   "&amp;": "&",
@@ -35,16 +35,9 @@ const HTML_ENTITY_MAP: { [entity: string]: string } = {
 };
 
 function decodeHtmlEntities(text: string): string {
-  // First, replace common named entities we care about.
-  const namedDecoded = text.replace(
-    /&lt;|&gt;|&amp;|&quot;|&#39;|&nbsp;/g,
-    (match) => (HTML_ENTITY_MAP[match] !== undefined ? HTML_ENTITY_MAP[match] : match)
-  );
-  // Then, handle generic numeric character references like &#39; or &#10;.
-  return namedDecoded.replace(/&#(\d+);/g, (_, code: string) => {
-    const num = Number(code);
-    return Number.isFinite(num) ? String.fromCodePoint(num) : _;
-  });
+  return text
+    .replace(/&lt;|&gt;|&amp;|&quot;|&#39;|&nbsp;/g, (m) => HTML_ENTITY_MAP[m])
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)));
 }
 
 function extractPreContents(html: string, role: "input" | "output"): string[] {

@@ -50,15 +50,9 @@ function compileCpp(problemId: string, filePath: string): { error: string } | nu
   });
   if (result.error) {
     const err = result.error as NodeJS.ErrnoException;
-    const code = err.code;
-    if (code === "ETIMEDOUT" || result.signal === "SIGTERM") {
-      return { error: "compile timeout (5s)" };
-    }
-    return {
-      error: code === "ENOENT"
-        ? "g++ not found — install a C++ compiler"
-        : `spawn error: ${err.message}`,
-    };
+    if (err.code === "ETIMEDOUT") return { error: "compile timeout (5s)" };
+    if (err.code === "ENOENT") return { error: "g++ not found — install a C++ compiler" };
+    return { error: `spawn error: ${err.message}` };
   }
   if (result.signal === "SIGTERM") return { error: "compile timeout (5s)" };
   if (result.status !== 0) return { error: `compile error:\n${(result.stderr ?? "").trim()}` };
@@ -127,6 +121,7 @@ export function createTestService(): TestService {
       }
 
       const argv = buildArgv(request.language, request.filePath, request.problemId);
+      const normalize = (s: string) => s.replace(/\r\n/g, "\n").replace(/\s+$/gm, "").trimEnd();
       const results = stored.samples.map((sample) => {
         const outcome = runOnce(argv, sample.input);
         if (outcome.timedOut) return { pass: false, expected: sample.output, got: "", error: "timeout (5s)" };
@@ -134,7 +129,6 @@ export function createTestService(): TestService {
           const msg = outcome.stderr.trim() || `exit code ${outcome.exitCode}`;
           return { pass: false, expected: sample.output, got: "", error: `runtime error: ${msg}` };
         }
-        const normalize = (s: string) => s.replace(/\r\n/g, "\n").replace(/\s+$/gm, "").trimEnd();
         const pass = normalize(outcome.stdout) === normalize(sample.output);
         return { pass, expected: sample.output, got: outcome.stdout };
       });

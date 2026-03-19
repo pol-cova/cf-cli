@@ -25,15 +25,38 @@ function parseTitle(html: string): string {
   return match[1].trim();
 }
 
+const HTML_ENTITY_MAP: { [entity: string]: string } = {
+  "&lt;": "<",
+  "&gt;": ">",
+  "&amp;": "&",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&nbsp;": " ",
+};
+
+function decodeHtmlEntities(text: string): string {
+  // First, replace common named entities we care about.
+  const namedDecoded = text.replace(
+    /&lt;|&gt;|&amp;|&quot;|&#39;|&nbsp;/g,
+    (match) => (HTML_ENTITY_MAP[match] !== undefined ? HTML_ENTITY_MAP[match] : match)
+  );
+  // Then, handle generic numeric character references like &#39; or &#10;.
+  return namedDecoded.replace(/&#(\d+);/g, (_, code: string) => {
+    const num = Number(code);
+    return Number.isFinite(num) ? String.fromCharCode(num) : _;
+  });
+}
+
 function extractPreContents(html: string, role: "input" | "output"): string[] {
   const pattern = new RegExp(`<div class="${role}">[\\s\\S]*?<pre>([\\s\\S]*?)<\\/pre>`, "g");
   const results: string[] = [];
   let m: RegExpExecArray | null;
   while ((m = pattern.exec(html)) !== null) {
-    const raw = m[1]
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, "")
-      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+    const raw = decodeHtmlEntities(
+      m[1]
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+    );
     results.push(raw.trim() + "\n");
   }
   return results;

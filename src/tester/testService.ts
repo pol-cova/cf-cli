@@ -40,7 +40,8 @@ function samplePath(problemId: string): string {
 }
 
 function binaryPath(problemId: string): string {
-  return path.join(TMP_DIR, `cf_${problemId}`);
+  const base = path.join(TMP_DIR, `cf_${problemId}`);
+  return process.platform === "win32" ? `${base}.exe` : base;
 }
 
 function compileCpp(problemId: string, filePath: string): { error: string } | null {

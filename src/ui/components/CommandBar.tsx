@@ -5,7 +5,7 @@ import { getGhostText, acceptGhost } from "../autocomplete.js";
 
 interface CommandBarProps {
   state: SessionState;
-  onSubmit: (value: string) => void;
+  onSubmit: (value: string) => void | Promise<void>;
   history: string[];
   isLoading: boolean;
 }

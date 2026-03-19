@@ -43,7 +43,7 @@ function decodeHtmlEntities(text: string): string {
   // Then, handle generic numeric character references like &#39; or &#10;.
   return namedDecoded.replace(/&#(\d+);/g, (_, code: string) => {
     const num = Number(code);
-    return Number.isFinite(num) ? String.fromCharCode(num) : _;
+    return Number.isFinite(num) ? String.fromCodePoint(num) : _;
   });
 }
 

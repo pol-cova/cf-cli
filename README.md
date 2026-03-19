@@ -1,73 +1,66 @@
 # cf-cli
 
-Interactive Codeforces helper focused on fast session-based workflows.
+A terminal session for Codeforces. Fetch a problem, write your solution, run the samples — without leaving the shell.
 
-## Current status
+## Setup
 
-This repository now includes the first implementation scaffold for an interactive session app:
-
-- command shell loop
-- slash command router
-- session state
-- solution file scaffolding for py/cpp
-- sample persistence under `.cf-cli/`
-- contributor/community baseline docs
-
-The current problem fetcher and test executor are stubs and will be replaced with real Codeforces HTML parsing and execution in the next implementation steps.
-
-## Quick start
-
-Prerequisites:
-
-- Node.js 20+
-- npm 10+
-
-Install and run:
+Requires [Bun](https://bun.sh), `python3`, and `g++`.
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
-You will see an interactive prompt:
+## Commands
 
-```text
-cf> 
+| Command | What it does |
+|---|---|
+| `/problem <id>` | Fetch problem from Codeforces, scaffold solution file, store samples |
+| `/lang <py\|cpp>` | Switch language (scaffolds new file if needed, never overwrites existing code) |
+| `/test` | Run stored samples against your solution |
+| `/status` | Show current problem, language, and file |
+| `/help` | List commands |
+| `/quit` | Exit |
+
+## Example session
+
+```
+❯ /problem 4A
+  ready 4A: A. Watermelon
+  file: 4A.py
+  samples: 2
+
+❯ /lang cpp
+  language set to cpp
+  file: 4A.cpp
+
+❯ /test
+  sample 1: PASS
+  sample 2: PASS
+  2/2 passed
 ```
 
-## Session commands
+The prompt shows your active context — `[4A · CPP] ❯` — and Tab completes commands.
 
-- `/help` show available commands
-- `/status` show current session state
-- `/problem <id>` scaffold active problem and store sample data
-- `/lang <py|cpp>` switch active language
-- `/test` run sample test workflow (currently scaffold output)
-- `/quit` exit session
+## Contributing
 
-Example session:
+Bug reports and pull requests are welcome at [pol-cova/cf-cli](https://github.com/pol-cova/cf-cli).
 
-```text
-/problem 1004A
-/lang py
-/status
-/test
-/quit
+If you're adding a feature, open an issue first so we can agree on the direction before you spend time on it.
+
+```bash
+bun install
+bun run dev   # run with file watching
+bun test      # run tests
 ```
 
-## Project structure
+## How it works
 
-```text
-src/
-	chat/         local helper suggestions
-	codeforces/   problem fetch + parse service (stub in v0)
-	commands/     slash command parsing and dispatch
-	session/      session state
-	tester/       sample storage and test service scaffold
-	ui/           interactive shell adapter
-```
+- Problems are fetched live from `codeforces.com` and parsed from HTML
+- Samples are stored under `.cf-cli/` and reused on `/test`
+- Python runs via `python3`, C++ compiles with `g++ -O2` then runs the binary
+- Solution files are created once and never overwritten on language switch
 
-## Roadmap (next)
+## License
 
-1. Replace problem service stub with Codeforces HTML retrieval and sample parser.
-2. Implement real test execution for Python and C++ with output diffing.
-3. Evolve shell adapter into full OpenTUI-driven layout (command panel, editor panel, output panel).
+MIT — see [LICENSE](./LICENSE)

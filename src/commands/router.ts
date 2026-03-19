@@ -1,5 +1,5 @@
 import path from "node:path";
-import { writeFile } from "node:fs/promises";
+import { access, writeFile } from "node:fs/promises";
 import type { SessionState, SupportedLanguage } from "../session/state.js";
 import type { ProblemService } from "../codeforces/problemService.js";
 import type { TestService } from "../tester/testService.js";
@@ -16,7 +16,7 @@ interface RouterDeps {
   helperService: HelperService;
 }
 
-interface CommandResult {
+export interface CommandResult {
   output: string;
   shouldExit: boolean;
 }
@@ -63,9 +63,14 @@ function createTemplate(problemId: string, language: SupportedLanguage): string 
 }
 
 async function scaffoldSolution(problemId: string, language: SupportedLanguage): Promise<string> {
-  const ext = language;
-  const filename = `${problemId}.${ext}`;
-  await writeFile(path.resolve(process.cwd(), filename), createTemplate(problemId, language), "utf-8");
+  const filename = `${problemId}.${language}`;
+  const fullPath = path.resolve(process.cwd(), filename);
+  try {
+    await access(fullPath);
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    await writeFile(fullPath, createTemplate(problemId, language), "utf-8");
+  }
   return filename;
 }
 
@@ -102,6 +107,10 @@ export function createCommandRouter(deps: RouterDeps): CommandRouter {
           return { output: "usage: /lang <py|cpp>", shouldExit: false };
         }
         deps.state.currentLanguage = value;
+        if (deps.state.currentProblemId) {
+          deps.state.currentFile = await scaffoldSolution(deps.state.currentProblemId, value);
+          return { output: `language set to ${value}\nfile: ${deps.state.currentFile}`, shouldExit: false };
+        }
         return { output: `language set to ${value}`, shouldExit: false };
       }
 

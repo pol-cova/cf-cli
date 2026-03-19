@@ -1,30 +1,23 @@
-import { createShell } from "./ui/shell.js";
+import { createElement } from "react";
+import { render } from "ink";
 import { createSessionState } from "./session/state.js";
 import { createCommandRouter } from "./commands/router.js";
 import { createProblemService } from "./codeforces/problemService.js";
 import { createTestService } from "./tester/testService.js";
 import { createHelperService } from "./chat/helperService.js";
+import { App } from "./ui/App.js";
 
 async function main(): Promise<void> {
   const state = createSessionState();
-  const problemService = createProblemService();
-  const testService = createTestService();
-  const helperService = createHelperService();
-
   const router = createCommandRouter({
     state,
-    problemService,
-    testService,
-    helperService,
+    problemService: createProblemService(),
+    testService: createTestService(),
+    helperService: createHelperService(),
   });
 
-  const shell = createShell({
-    prompt: "cf> ",
-    welcome: "cf interactive session. Type /help to see commands.",
-    onLine: (line) => router.dispatch(line),
-  });
-
-  await shell.run();
+  const { waitUntilExit } = render(createElement(App, { router, state }));
+  await waitUntilExit();
 }
 
 main().catch((error: unknown) => {

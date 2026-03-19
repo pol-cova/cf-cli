@@ -57,7 +57,8 @@ function extractPreContents(html: string, role: "input" | "output"): string[] {
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<[^>]+>/g, "")
     );
-    results.push(raw.trim() + "\n");
+    const normalized = raw.replace(/\r\n|\r/g, "\n").trimEnd();
+    results.push(normalized + "\n");
   }
   return results;
 }
